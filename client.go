@@ -32,8 +32,15 @@ func NewRESTClient(token string, debugf Printf) (*github.Client, error) {
 	// Query rate limit to check that the client is able to make queries.
 	// See https://docs.github.com/en/rest/rate-limit.
 	// We can't use https://docs.github.com/en/rest/users/users#get-the-authenticated-user API,
-	// because short-lived automatic GITHUB_TOKEN is provided by GitHub Actions App that can't access this API
-	// (and doesn't have authenticated user).
-	_, _, err := c.RateLimits(ctx)
+	// because short-lived automatic GITHUB_TOKEN is provided by GitHub Actions App that can't access this API.
+	rl, _, err := c.RateLimits(ctx)
+
+	if rl != nil && debugf != nil {
+		debugf(
+			"Rate limit: %d/%d, resets at: %s.",
+			rl.Core.Remaining, rl.Core.Limit, rl.Core.Reset.Format(time.RFC3339),
+		)
+	}
+
 	return c, err
 }

@@ -49,7 +49,7 @@ func (t *transport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 	b, dumpErr = httputil.DumpResponse(resp, true)
 	if dumpErr == nil {
-		t.debugf("Request:\n%s", b)
+		t.debugf("Response:\n%s", b)
 	} else {
 		t.debugf("DumpResponse failed: %s", dumpErr)
 	}

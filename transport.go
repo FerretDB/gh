@@ -18,7 +18,11 @@ type transport struct {
 }
 
 // NewTransport returns a new http.RoundTripper that wraps the source with debug logging.
+// Both should be set.
 func NewTransport(source http.RoundTripper, debugf Printf) http.RoundTripper {
+	if source == nil {
+		panic("source is nil")
+	}
 	if debugf == nil {
 		panic("debugf is nil")
 	}

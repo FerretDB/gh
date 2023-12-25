@@ -2,9 +2,10 @@ package gh
 
 import (
 	"context"
+	"net/http"
 	"time"
 
-	"github.com/google/go-github/v56/github"
+	"github.com/google/go-github/v57/github"
 	"golang.org/x/oauth2"
 )
 
@@ -19,6 +20,9 @@ func NewRESTClient(token string, debugf Printf) (*github.Client, error) {
 	}
 
 	httpClient := oauth2.NewClient(context.Background(), src)
+	if httpClient.Transport == nil {
+		httpClient.Transport = http.DefaultTransport
+	}
 	if debugf != nil {
 		httpClient.Transport = NewTransport(httpClient.Transport, debugf)
 	}

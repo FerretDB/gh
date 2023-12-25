@@ -12,19 +12,27 @@ import (
 // NewRESTClient returns GitHub REST API client for the given token (that may be empty)
 // and debug logging function (that may be nil).
 func NewRESTClient(token string, debugf Printf) (*github.Client, error) {
-	var src oauth2.TokenSource
-	if token != "" {
-		src = oauth2.StaticTokenSource(
-			&oauth2.Token{AccessToken: token},
-		)
+	// don't use http.DefaultClient and oauth2.NewClient to avoid data races
+
+	httpTransport := http.DefaultTransport
+	if debugf != nil {
+		httpTransport = NewTransport(http.DefaultTransport, debugf)
 	}
 
-	httpClient := oauth2.NewClient(context.Background(), src)
-	if httpClient.Transport == nil {
-		httpClient.Transport = http.DefaultTransport
-	}
-	if debugf != nil {
-		httpClient.Transport = NewTransport(httpClient.Transport, debugf)
+	var httpClient *http.Client
+	if token == "" {
+		httpClient = &http.Client{
+			Transport: httpTransport,
+		}
+	} else {
+		httpClient = &http.Client{
+			Transport: &oauth2.Transport{
+				Base: httpTransport,
+				Source: oauth2.ReuseTokenSource(nil, oauth2.StaticTokenSource(
+					&oauth2.Token{AccessToken: token},
+				)),
+			},
+		}
 	}
 
 	c := github.NewClient(httpClient)
@@ -37,7 +45,7 @@ func NewRESTClient(token string, debugf Printf) (*github.Client, error) {
 	// See https://docs.github.com/en/rest/rate-limit.
 	// We can't use https://docs.github.com/en/rest/users/users#get-the-authenticated-user API,
 	// because short-lived automatic GITHUB_TOKEN is provided by GitHub Actions App that can't access this API.
-	rl, _, err := c.RateLimits(ctx)
+	rl, _, err := c.RateLimit.Get(ctx)
 
 	if rl != nil && debugf != nil {
 		debugf(

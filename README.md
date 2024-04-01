@@ -1,3 +1,3 @@
 # gh
 
-GitHub API helpers
+GitHub API helpers.

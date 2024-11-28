@@ -1,6 +1,8 @@
 package gh
 
 import (
+	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/httputil"
 )
@@ -10,6 +12,13 @@ type Printf func(format string, args ...any)
 
 // NoopPrintf is a Printf function that does nothing.
 func NoopPrintf(string, ...any) {}
+
+// SLogPrintf is a Printf function that uses given slog.Logger with Debug level.
+func SLogPrintf(l *slog.Logger) Printf {
+	return func(format string, args ...any) {
+		l.Debug(fmt.Sprintf(format, args...))
+	}
+}
 
 // transport is an http.RoundTripper with debug logging.
 type transport struct {

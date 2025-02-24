@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/go-github/v66/github"
+	"github.com/google/go-github/v69/github"
 	"golang.org/x/oauth2"
 )
 
